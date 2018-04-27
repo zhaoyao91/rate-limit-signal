@@ -5,25 +5,47 @@ Limit rate by waiting a signal.
 ## Installation
 
 ```
-npm install rate-limit-rate
+npm install rate-limit-sigal
 ```
 
 ## Usage
 
-``` ecmascript6
-const buildSignal = require('rate-limit-signal')
 
-const signal = buildSignal(666) // arg is the interval of milliseconds
+``` ecmascript6
+const Signal = require('rate-limit-signal')
+
+const signal = new Signal({
+  interval: 1000,
+  count: 1,
+})
+
+signal.start()
 
 async function task() {
-  await signal()
+  await signal.wait()
   // do something
 }
 
-const queue = signal.stop()
-// the signal is stopped forever
-// the returned queue is an array of resolve functions of rest promises of signal-waiting
+task()
+task()
+...
+
+signal.stop()
 ```
+
+## API
+
+### Signal
+
+- type: class
+- methods:
+  - constructor: ({interval, count}) => signal
+    - interval?: Number = 1000 - milliseconds
+    - count?: Number = 1
+  - start: () => Void
+  - stop: () => Void
+  - pass: (count) => Void - force to resolve some items
+    - count? Number = Infinity
 
 ## License
 

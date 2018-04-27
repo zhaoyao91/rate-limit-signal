@@ -1,28 +1,34 @@
-function buildSignal (interval = 1000) {
-  const stopped = false
-  const queue = []
+class RateLimitSignal {
+  constructor ({interval = 1000, count = 1} = {}) {
+    this._interval = interval
+    this._count = count
+    this._queue = []
+  }
 
-  const timer = setInterval(() => {
-    if (queue.length > 0) {
-      queue.shift()()
-    }
-  }, interval)
+  start () {
+    this.stop()
+    this._timer = setInterval(() => {
+      this.pass(this._count)
+    }, this._interval)
+  }
 
-  function signal () {
-    if (stopped) {
-      throw new Error('This signal has been stopped')
+  stop () {
+    if (this._timer) {
+      clearInterval(this._timer)
+      this._timer = null
     }
-    return new Promise((resolve) => {
-      queue.push(resolve)
+  }
+
+  pass (count = Infinity) {
+    const resolves = this._queue.splice(0, count)
+    resolves.forEach(resolve => resolve())
+  }
+
+  wait () {
+    return new Promise(resolve => {
+      this._queue.push(resolve)
     })
   }
-
-  signal.stop = function () {
-    clearInterval(timer)
-    return queue
-  }
-
-  return signal
 }
 
-module.exports = buildSignal
+module.exports = RateLimitSignal
